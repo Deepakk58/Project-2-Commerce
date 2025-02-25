@@ -7,6 +7,53 @@ from django.urls import reverse
 from .models import *
 
 
+def addBid(request, listing_id):
+    if request.method == "POST":
+        listing = Listings.objects.get(pk = listing_id)
+        bid = float(request.POST["bid"])
+
+        isadded = request.user in listing.watchList.all()
+        comments = Comment.objects.filter(post=listing)        
+        if listing.price.bid >= bid:
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "isadded": isadded,
+                "comments": comments,
+                "Bmessage": "Bid must be greater than current bid"
+            })
+        else:
+            newBid = Bid(bid = bid, bidder = request.user)
+            newBid.save()
+            listing.price = newBid
+            listing.save()
+
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "isadded": isadded,
+                "comments": comments,
+                "Bmessage": "Bid Added Succesfully"
+            })
+
+def closeAuction(request, listing_id):
+    listing = Listings.objects.get(pk = listing_id)
+    listing.isActive = False
+    listing.save()
+    return HttpResponseRedirect(reverse("listing", args=(listing_id,))) 
+
+def addComment(request, listing_id):
+    if request.method == "POST":
+        listing = Listings.objects.get(pk = listing_id)
+        msg = request.POST['comment']
+        writer = request.user
+        comment = Comment(
+            post = listing,
+            writer = writer,
+            message = msg
+        )
+        comment.save()
+
+        return HttpResponseRedirect(reverse("listing", args=(listing_id,))) 
+
 def displayWatchList(request):
     currUser = request.user
     listings = currUser.listingWatchList.all()
@@ -43,9 +90,13 @@ def loadListing(request, listing_id):
     currUser = request.user
     listing = Listings.objects.filter(pk=listing_id).first()
     isadded = currUser in listing.watchList.all()
+    comments = Comment.objects.filter(post=listing)
+
+
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "isadded": isadded
+        "isadded": isadded,
+        "comments": comments
     })
 
 def index(request):
@@ -54,15 +105,15 @@ def index(request):
         "title": "Active Listings"
     })
 
-
-
-
 def createListing(request):
     if request.method == "POST":
         title = request.POST["title"]
         descp = request.POST["descp"]
         start = request.POST["start"]
         url = request.POST["url"]
+        currUser = request.user
+        bid = Bid(bid = start, bidder = currUser)
+        bid.save()
         cate_id = (request.POST.get("category"))
         if cate_id == "":
             cate = None
@@ -72,9 +123,10 @@ def createListing(request):
         newList = Listings(
             title = title,
             descp = descp,
-            bid = start,
+            price = bid,
             url = url,
-            category = cate
+            category = cate,
+            owner = currUser
         )
 
         newList.save()
@@ -84,6 +136,8 @@ def createListing(request):
     return render(request, "auctions/create.html", {
         "categories": Category.objects.all()
     })
+
+
 
 
 def login_view(request):
@@ -105,11 +159,9 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
 
 def register(request):
     if request.method == "POST":

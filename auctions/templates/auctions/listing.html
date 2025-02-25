@@ -3,7 +3,47 @@
 {% block body %}
     {{ listing }}
 
-    {% if user.is_authenticated %}
+    {% if listing.category %}
+
+        Category: {{ listing.category }}
+
+    {% else %}
+
+        Category: No Category
+
+    {% endif %}
+
+    {% if not listing.isActive and user == listing.price.bidder %}
+
+        <p>Congratulations! You won the Auction</p>
+
+    {% else %}
+
+        <p>The Auction has ended</p>
+
+    {% endif %}
+
+    {% if user.is_authenticated and listing.isActive %}
+
+
+        {% if Bmessage %}
+            {{Bmessage}}
+        {% endif %}
+        <p>Add a Bid: </p>
+        <form action="{% url 'addBid' listing.id%}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input class="form-control" type="number" name="bid" placeholder="Place Your Bid here" required>
+            </div>
+            
+            <input class="btn btn-primary" type="submit" value="Bid">
+        </form>
+
+        {% if user == listing.owner %}
+
+            <a href="{% url 'closeAuction' listing.id %}">Close Auction</a>
+
+        {% endif %}
 
         {% if isadded %}
             <a href="{% url 'removeWatchList' listing.id %}">Remove From Watchlist</a>
@@ -11,8 +51,31 @@
             <a href="{% url 'addWatchList' listing.id %}">Add to Watchlist</a>
         {% endif %}
 
-    {% endif %}
-  
 
+
+    {% endif %}
+
+    <h4>Comments:</h4>
+    <br>
+    {% for comment in comments %}
+        <li>{{ comment }}</li>
+    {% empty %}
+        <p>No Comments.</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+
+        <p>Add a comment</p>
+
+        <form action="{% url 'addComment' listing.id%}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input class="form-control" type="text" name="comment" placeholder="Comment here" required>
+            </div>
+            
+            <input class="btn btn-primary" type="submit" value="Post">
+        </form>
+
+    {% endif %}
     
 {% endblock %}
