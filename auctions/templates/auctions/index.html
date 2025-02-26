@@ -4,16 +4,29 @@
     <h2>{{ title }}</h2>
 
     {% for listing in listings %}
-    
-        <a href="{% url 'listing' listing.id%}">
-            <img src="{{ listing.url }}" alt="Image not available">
-            <div>
-                {{ listing }} 
+
+        <a href="{% url 'listing' listing.id%}" class="text-decoration-none text-dark">
+
+            <div class="row align-items-center border border-black rounded mx-2 mt-3">
+                <div class="col-3 d-flex justify-content-center align-items-center">
+                    <img src="{{ listing.url }}" style="height: 240px;" alt="Image not available">
+                </div>
+
+                <div class="col-4 ml-1" style="height: 240px;">
+                    
+                    <h4 class="mt-3">{{ listing.title }}</h4>
+                    <b> Price: </b> Rs. {{listing.price.bid}}
+                    <div class="mt-3">{{listing.descp}}</div>
+                    <div class="mt-1 text-muted">Listing Created by {{ listing.owner }}</div>
+                </div>
+
             </div>
         </a>
+            
     
     {% empty %}
-        <li>No Listings.</li>
+    
+        No Listings.
 
     {% endfor %}
 

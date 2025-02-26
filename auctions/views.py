@@ -19,7 +19,8 @@ def addBid(request, listing_id):
                 "listing": listing,
                 "isadded": isadded,
                 "comments": comments,
-                "Bmessage": "Bid must be greater than current bid"
+                "Bmessage": "Bid must be greater than current bid",
+                "success": False
             })
         else:
             newBid = Bid(bid = bid, bidder = request.user)
@@ -31,14 +32,19 @@ def addBid(request, listing_id):
                 "listing": listing,
                 "isadded": isadded,
                 "comments": comments,
-                "Bmessage": "Bid Added Succesfully"
+                "Bmessage": "Bid Added Succesfully",
+                "success": True
             })
+        
+
 
 def closeAuction(request, listing_id):
     listing = Listings.objects.get(pk = listing_id)
     listing.isActive = False
     listing.save()
     return HttpResponseRedirect(reverse("listing", args=(listing_id,))) 
+
+
 
 def addComment(request, listing_id):
     if request.method == "POST":
@@ -54,6 +60,8 @@ def addComment(request, listing_id):
 
         return HttpResponseRedirect(reverse("listing", args=(listing_id,))) 
 
+
+
 def displayWatchList(request):
     currUser = request.user
     listings = currUser.listingWatchList.all()
@@ -62,17 +70,23 @@ def displayWatchList(request):
         "title": "Watchlist"
     })
 
+
+
 def removeWatchList(request, listing_id):
     currUser = request.user
     listing = Listings.objects.get(pk = listing_id)
     listing.watchList.remove(currUser)
     return HttpResponseRedirect(reverse("watchList"))
 
+
+
 def addWatchList(request, listing_id):
     currUser = request.user
     listing = Listings.objects.get(pk = listing_id)
     listing.watchList.add(currUser)
     return HttpResponseRedirect(reverse("watchList"))
+
+
 
 def displayCategory(request, cat_id):
     cat = Category.objects.get(pk = cat_id)
@@ -81,10 +95,14 @@ def displayCategory(request, cat_id):
         "title": f"{cat.name}"
     })
 
+
+
 def category(request):
     return render(request, "auctions/categories.html", {
         "categories": Category.objects.all()
     })
+
+
 
 def loadListing(request, listing_id):
     currUser = request.user
@@ -92,18 +110,21 @@ def loadListing(request, listing_id):
     isadded = currUser in listing.watchList.all()
     comments = Comment.objects.filter(post=listing)
 
-
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "isadded": isadded,
         "comments": comments
     })
 
+
+
 def index(request):
     return render(request, "auctions/index.html", {
         "listings": Listings.objects.all(),
         "title": "Active Listings"
     })
+
+
 
 def createListing(request):
     if request.method == "POST":
@@ -159,9 +180,11 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
+
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
+
 
 def register(request):
     if request.method == "POST":

@@ -5,6 +5,7 @@ from django.db import models
 class User(AbstractUser):
     pass
 
+
 class Category(models.Model):
     name = models.CharField(max_length=50)
     id = models.IntegerField(primary_key=True)
@@ -19,7 +20,8 @@ class Bid(models.Model):
 
     def __str__(self):
         return f"Current Bid: {self.bid} by {self.bidder}"
-    
+
+
 class Listings(models.Model):
     title = models.CharField(max_length=50)
     descp = models.CharField(max_length=250)
@@ -31,7 +33,8 @@ class Listings(models.Model):
     watchList = models.ManyToManyField(User, blank=True, related_name="listingWatchList")
     
     def __str__(self):
-        return f"Title: {self.title} Description: {self.descp} Current Bid: {self.price}"
+        return f"Title: {self.title} Description: {self.descp} {self.price}"
+
 
 class Comment(models.Model):
     message = models.CharField(max_length=200)

@@ -1,54 +1,109 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    {{ listing }}
+    <h2>Listing: {{ listing.title }}</h2>
 
-    {% if listing.category %}
+    <div class=" my-2">
+        <img src="{{ listing.url }}" style="height: 320px;" alt="Image not available">
+    </div>
 
-        Category: {{ listing.category }}
 
-    {% else %}
+    <div class="mb-2">{{ listing.descp }}</div>
 
-        Category: No Category
+    <h3>Rs. {{ listing.price.bid }}</h3>
+
+    {% if user.is_authenticated and listing.isActive %}
+    
+        {% if listing.price.bidder == user %}
+
+            <p>Current Bid is Yours</p>
+
+        {% else %}
+
+            <p>Current Bid is of {{listing.price.bidder}}</p>
+
+        {% endif %}
+    
+        {% if Bmessage %}
+
+            {% if success %}
+
+                <div class="alert alert-success">
+                    {{ Bmessage }}
+                </div>
+
+            {% else %}
+
+                <div class="alert alert-warning">
+                    {{ Bmessage }}
+                </div>
+
+            {% endif %}
+            
+        {% endif %}
+        
+        <form action="{% url 'addBid' listing.id%}" method="post">
+
+            {% csrf_token %}
+            <div class="form-group">
+                <input class="form-control w-25" type="number" name="bid" placeholder="Bid" required>
+            </div>
+            
+            <input class="btn btn-primary" type="submit" value="Place Bid">
+        </form>
 
     {% endif %}
 
+    <h4 class="mt-3">Details:</h4>
+
+    <li>Listed by {{ listing.owner }}</li>
+
+    <li>
+        {% if listing.category %}
+
+            Category: {{ listing.category }}
+
+        {% else %}
+
+            Category: No Category Listed
+
+        {% endif %}
+    </li>
+
+    
+
     {% if not listing.isActive and user == listing.price.bidder %}
 
-        <p>Congratulations! You won the Auction</p>
+        <p class="text-success fw-bold mt-3" style="font-size: 20px;">Congratulations! You won the Auction</p>
 
-    {% else %}
+    {% elif not listing.isActive %}
 
-        <p>The Auction has ended</p>
+        <p class="text-danger fw-bold mt-3" style="font-size: 20px;">The Auction has ended</p>
 
     {% endif %}
 
     {% if user.is_authenticated and listing.isActive %}
 
-
-        {% if Bmessage %}
-            {{Bmessage}}
-        {% endif %}
-        <p>Add a Bid: </p>
-        <form action="{% url 'addBid' listing.id%}" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <input class="form-control" type="number" name="bid" placeholder="Place Your Bid here" required>
-            </div>
-            
-            <input class="btn btn-primary" type="submit" value="Bid">
-        </form>
-
         {% if user == listing.owner %}
 
-            <a href="{% url 'closeAuction' listing.id %}">Close Auction</a>
+            <div class="my-3">
+                <a href="{% url 'closeAuction' listing.id %}" class="btn btn-danger">Close Auction</a>
+            </div>
 
         {% endif %}
 
         {% if isadded %}
-            <a href="{% url 'removeWatchList' listing.id %}">Remove From Watchlist</a>
+
+            <div class="my-3">
+                <a href="{% url 'removeWatchList' listing.id %}" class="btn btn-warning">Remove From Watchlist</a>
+            </div>
+
         {% else %}
-            <a href="{% url 'addWatchList' listing.id %}">Add to Watchlist</a>
+
+            <div class="my-3">
+                <a href="{% url 'addWatchList' listing.id %}"class="btn btn-info">Add to Watchlist</a>
+            </div>
+
         {% endif %}
 
 
@@ -56,18 +111,26 @@
     {% endif %}
 
     <h4>Comments:</h4>
-    <br>
+    
     {% for comment in comments %}
-        <li>{{ comment }}</li>
+
+        <div>{{ comment.writer }}: </div>
+        <div>{{ comment.message }}</div>
+        <hr>
+
     {% empty %}
-        <p>No Comments.</p>
+
+        No Comments.
+        <hr>
+
     {% endfor %}
 
     {% if user.is_authenticated %}
-
+        
         <p>Add a comment</p>
 
         <form action="{% url 'addComment' listing.id%}" method="post">
+            
             {% csrf_token %}
             <div class="form-group">
                 <input class="form-control" type="text" name="comment" placeholder="Comment here" required>
